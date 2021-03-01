@@ -10,10 +10,9 @@ import org.upgrad.upstac.users.UserService;
 import org.upgrad.upstac.users.models.AccountStatus;
 import org.upgrad.upstac.users.roles.UserRole;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
+
+import static org.upgrad.upstac.shared.DateParser.getDateFromString;
 
 
 @Service
@@ -26,144 +25,151 @@ public class RegisterService {
     private static final Logger log = LoggerFactory.getLogger(RegisterService.class);
 
 
-    public User addUser(RegisterRequest registerRequest) {
-/*      User should be validated before registration.
-                the username , email and phone number should be unique (i.e should throw AppException if the RegisterRequest has the same username or email or phone number)
-                    hint:
-                        userService.findByUserName
-                        userService.findByEmail
-                        userService.findByPhoneNumber
-
-         A new User Object should be created with same details as registerRequest
-                password should be encrypted with help of   userService.toEncrypted
-                roles should be set with help of  userService.getRoleFor(UserRole.USER)
-                status should be set to AccountStatus.APPROVED
-
-        And finally
-            Call userService.saveInDatabase to save the new user and return the saved user
-*/
-        if(userService.findByUserName(registerRequest.getUserName()) != null) {
-            throw new AppException("User Id already exists: "+registerRequest.getUserName());
-        }
-        if(userService.findByEmail(registerRequest.getEmail()) != null) {
-            throw new AppException("Email Id already exists: "+registerRequest.getEmail());
-        }
-        if(userService.findByPhoneNumber(registerRequest.getPhoneNumber()) != null) {
-            throw new AppException("Phone number already exists: "+registerRequest.getPhoneNumber());
-        }
-
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-        User user = new User();
-
-        user.setUserName(registerRequest.getUserName());
-        user.setPassword(userService.toEncrypted(registerRequest.getPassword()));
-        user.setFirstName(registerRequest.getFirstName());
-        user.setEmail(registerRequest.getEmail());
-        user.setPhoneNumber(registerRequest.getPhoneNumber());
-        user.setLastName(registerRequest.getLastName());
-        user.setAddress(registerRequest.getAddress());
-        user.setPinCode(registerRequest.getPinCode());
-        user.setDateOfBirth(LocalDate.parse(registerRequest.getDateOfBirth(),dtf));
-        user.setGender(registerRequest.getGender());
-        user.setRoles(userService.getRoleFor(UserRole.USER));
-        user.setStatus(AccountStatus.APPROVED);
-
-        User updatedUser = userService.saveInDatabase(user);
-
-        return user;
-    }
-
-    public User addDoctor(RegisterRequest registerRequest) {
+    public User addUser(RegisterRequest user) {
 
 
-/*      Doctor should be validated before registration.
-                the username , email and phone number should be unique (i.e should throw AppException if the RegisterRequest has the same username or email or phone number)
-                    hint:
-                        userService.findByUserName
-                        userService.findByEmail
-                        userService.findByPhoneNumber
+        if((null != userService.findByUserName(user.getUserName())))
+            throw new AppException("Username already exists " + user.getUserName());
 
-         A new User Object should be created with same details as registerRequest
-                password should be encrypted with help of   userService.toEncrypted
-                roles should be set with help of  userService.getRoleFor(UserRole.DOCTOR)
-                status should be set to AccountStatus.INITIATED
+        if((null != userService.findByEmail(user.getEmail())))
+            throw new AppException("User with Same email already exists " + user.getEmail());
 
-        And finally
-            Call userService.saveInDatabase to save the newly registered doctor and return the saved value
-*/
-        User user = null;
-        if(userService.findByUserName(registerRequest.getUserName()) == null &&
-                userService.findByEmail(registerRequest.getEmail()) == null &&
-                userService.findByPhoneNumber(registerRequest.getPhoneNumber()) == null) {
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-            user = new User();
-            user.setUserName(registerRequest.getUserName());
-            user.setPassword(userService.toEncrypted(registerRequest.getPassword()));
-            user.setFirstName(registerRequest.getFirstName());
-            user.setEmail(registerRequest.getEmail());
-            user.setPhoneNumber(registerRequest.getPhoneNumber());
-            user.setLastName(registerRequest.getLastName());
-            user.setAddress(registerRequest.getAddress());
-            user.setPinCode(registerRequest.getPinCode());
-            user.setDateOfBirth(LocalDate.parse(registerRequest.getDateOfBirth(),dtf));
-            user.setGender(registerRequest.getGender());
-            user.setRoles(userService.getRoleFor(UserRole.DOCTOR));
-            user.setStatus(AccountStatus.INITIATED);
-            user = userService.saveInDatabase(user);
-            System.out.println("User Saved");
-            return user;
-        } else {
-            throw new AppException("User ID or Email or Phone Number Already Exists");
-        }
+        if((null != userService.findByPhoneNumber(user.getPhoneNumber())))
+            throw new AppException("User with Same Phone number already exists " + user.getPhoneNumber());
+
+
+        User newUser = new User();
+        newUser.setUserName(user.getUserName());
+        newUser.setPassword(userService.toEncrypted(user.getPassword()));
+        newUser.setRoles(userService.getRoleFor(UserRole.USER));
+        newUser.setCreated(LocalDateTime.now());
+        newUser.setUpdated(LocalDateTime.now());
+        newUser.setAddress(user.getAddress());
+        newUser.setFirstName(user.getFirstName());
+        newUser.setLastName(user.getLastName());
+        newUser.setEmail(user.getEmail());
+        newUser.setPhoneNumber(user.getPhoneNumber());
+        newUser.setPinCode(user.getPinCode());
+        newUser.setGender(user.getGender());
+        newUser.setAddress(user.getAddress());
+        newUser.setDateOfBirth(getDateFromString(user.getDateOfBirth()));
+        newUser.setStatus(AccountStatus.APPROVED);
+        User updatedUser = userService.saveInDatabase(newUser);
+
+
+        return updatedUser;
+
 
     }
 
+    public User addDoctor(RegisterRequest user) {
 
-    public User addTester(RegisterRequest registerRequest) {
+        if((null != userService.findByUserName(user.getUserName())))
+            throw new AppException("Username already exists " + user.getUserName());
+
+        if((null != userService.findByEmail(user.getEmail())))
+            throw new AppException("User with Same email already exists " + user.getEmail());
 
 
-/*      Tester should be validated before registration.
-                the username , email and phone number should be unique (i.e should throw AppException if the RegisterRequest has the same username or email or phone number)
-                    hint:
-                        userService.findByUserName
-                        userService.findByEmail
-                        userService.findByPhoneNumber
+        if((null != userService.findByPhoneNumber(user.getPhoneNumber())))
+            throw new AppException("User with Same Phone number already exists " + user.getPhoneNumber());
 
-         A new User Object should be created with same details as registerRequest
-                password should be encrypted with help of   userService.toEncrypted
-                roles should be set with help of  userService.getRoleFor(UserRole.TESTER)
-                status should be set to AccountStatus.INITIATED
 
-        And finally
-            Call userService.saveInDatabase to save newly registered tester and return the saved value
-*/
-        User user = null;
-        if(userService.findByUserName(registerRequest.getUserName()) == null &&
-                userService.findByEmail(registerRequest.getEmail()) == null &&
-                userService.findByPhoneNumber(registerRequest.getPhoneNumber()) == null) {
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        User newUser = new User();
+        newUser.setUserName(user.getUserName());
+        newUser.setPassword(userService.toEncrypted(user.getPassword()));
+        newUser.setRoles(userService.getRoleFor(UserRole.DOCTOR));
+        newUser.setCreated(LocalDateTime.now());
+        newUser.setUpdated(LocalDateTime.now());
+        newUser.setAddress(user.getAddress());
+        newUser.setFirstName(user.getFirstName());
+        newUser.setLastName(user.getLastName());
+        newUser.setEmail(user.getEmail());
+        newUser.setPhoneNumber(user.getPhoneNumber());
+        newUser.setPinCode(user.getPinCode());
+        newUser.setGender(user.getGender());
+        newUser.setAddress(user.getAddress());
+        newUser.setDateOfBirth(getDateFromString(user.getDateOfBirth()));
+        newUser.setStatus(AccountStatus.INITIATED);
+        User updatedUser = userService.saveInDatabase(newUser);
 
-            user = new User();
-            user.setUserName(registerRequest.getUserName());
-            user.setPassword(userService.toEncrypted(registerRequest.getPassword()));
-            user.setFirstName(registerRequest.getFirstName());
-            user.setEmail(registerRequest.getEmail());
-            user.setPhoneNumber(registerRequest.getPhoneNumber());
-            user.setLastName(registerRequest.getLastName());
-            user.setAddress(registerRequest.getAddress());
-            user.setPinCode(registerRequest.getPinCode());
-            user.setDateOfBirth(LocalDate.parse(registerRequest.getDateOfBirth(),dtf));
-            user.setGender(registerRequest.getGender());
-            user.setRoles(userService.getRoleFor(UserRole.TESTER));
-            user.setStatus(AccountStatus.INITIATED);
-            user = userService.saveInDatabase(user);
-            System.out.println("User Saved");
-            return user;
-        } else {
-            throw new AppException("User ID or Email or Phone Number Already Exists");
-        }
+
+        return updatedUser;
+
+
+    }
+    public User addGovernmentAuthority(RegisterRequest user) {
+
+        if((null != userService.findByUserName(user.getUserName())))
+            throw new AppException("Username already exists " + user.getUserName());
+
+        if((null != userService.findByEmail(user.getEmail())))
+            throw new AppException("User with Same email already exists " + user.getEmail());
+
+
+        if((null != userService.findByPhoneNumber(user.getPhoneNumber())))
+            throw new AppException("User with Same Phone number already exists " + user.getPhoneNumber());
+
+
+        User newUser = new User();
+        newUser.setUserName(user.getUserName());
+        newUser.setPassword(userService.toEncrypted(user.getPassword()));
+        newUser.setRoles(userService.getRoleFor(UserRole.GOVERNMENT_AUTHORITY));
+        newUser.setCreated(LocalDateTime.now());
+        newUser.setUpdated(LocalDateTime.now());
+        newUser.setAddress(user.getAddress());
+        newUser.setFirstName(user.getFirstName());
+        newUser.setLastName(user.getLastName());
+        newUser.setEmail(user.getEmail());
+        newUser.setPhoneNumber(user.getPhoneNumber());
+        newUser.setPinCode(user.getPinCode());
+        newUser.setGender(user.getGender());
+        newUser.setAddress(user.getAddress());
+        newUser.setDateOfBirth(getDateFromString(user.getDateOfBirth()));
+        newUser.setStatus(AccountStatus.APPROVED);
+        User updatedUser = userService.saveInDatabase(newUser);
+
+
+        return updatedUser;
+
+
+    }
+
+    public User addTester(RegisterRequest user) {
+
+        if((null != userService.findByUserName(user.getUserName())))
+            throw new AppException("Username already exists " + user.getUserName());
+
+        if((null != userService.findByEmail(user.getEmail())))
+            throw new AppException("User with Same email already exists " + user.getEmail());
+
+
+        if((null != userService.findByPhoneNumber(user.getPhoneNumber())))
+            throw new AppException("User with Same Phone number already exists " + user.getPhoneNumber());
+
+
+        User newUser = new User();
+        newUser.setUserName(user.getUserName());
+        newUser.setPassword(userService.toEncrypted(user.getPassword()));
+        newUser.setRoles(userService.getRoleFor(UserRole.TESTER));
+        newUser.setCreated(LocalDateTime.now());
+        newUser.setUpdated(LocalDateTime.now());
+        newUser.setAddress(user.getAddress());
+        newUser.setFirstName(user.getFirstName());
+        newUser.setLastName(user.getLastName());
+        newUser.setEmail(user.getEmail());
+        newUser.setPhoneNumber(user.getPhoneNumber());
+        newUser.setPinCode(user.getPinCode());
+        newUser.setGender(user.getGender());
+        newUser.setAddress(user.getAddress());
+        newUser.setDateOfBirth(getDateFromString(user.getDateOfBirth()));
+        newUser.setStatus(AccountStatus.INITIATED);
+        User updatedUser = userService.saveInDatabase(newUser);
+
+
+        return updatedUser;
+
 
     }
 

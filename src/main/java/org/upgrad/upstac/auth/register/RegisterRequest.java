@@ -12,6 +12,8 @@ import org.upgrad.upstac.users.models.Gender;
 @ToString
 @EqualsAndHashCode
 public class RegisterRequest {
+
+
     private String userName;
 
     private String password;
@@ -21,13 +23,19 @@ public class RegisterRequest {
 
     private String phoneNumber="";
 
+
     private String lastName;
 
     private String address;
 
     private Integer pinCode;
 
+
     private String dateOfBirth;
 
+
     private Gender gender;
+
+
+
 }
