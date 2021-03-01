@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.upgrad.upstac.config.security.UserLoggedInService;
 import org.upgrad.upstac.exception.AppException;
+import org.upgrad.upstac.testrequests.RequestStatus;
 import org.upgrad.upstac.testrequests.TestRequest;
 import org.upgrad.upstac.testrequests.TestRequestQueryService;
 import org.upgrad.upstac.testrequests.TestRequestUpdateService;
@@ -28,15 +29,11 @@ public class ConsultationController {
 
     Logger log = LoggerFactory.getLogger(ConsultationController.class);
 
-
-
-
     @Autowired
     private TestRequestUpdateService testRequestUpdateService;
 
     @Autowired
     private TestRequestQueryService testRequestQueryService;
-
 
     @Autowired
     TestRequestFlowService  testRequestFlowService;
@@ -44,14 +41,11 @@ public class ConsultationController {
     @Autowired
     private UserLoggedInService userLoggedInService;
 
-
-
     @GetMapping("/in-queue")
     @PreAuthorize("hasAnyRole('DOCTOR')")
     public List<TestRequest> getForConsultations()  {
 
         // Implement this method
-
 
         //Implement this method to get the list of test requests having status as 'LAB_TEST_COMPLETED'
         // make use of the findBy() method from testRequestQueryService class
@@ -59,9 +53,10 @@ public class ConsultationController {
         // For reference check the method getForTests() method from LabRequestController class
 
         // replace this line of code with your implementation
-        throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED,"Not implemented");
 
+        /*throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED,"Not implemented");*/
 
+        return testRequestQueryService.findBy(RequestStatus.LAB_TEST_COMPLETED);
     }
 
     @GetMapping
@@ -76,10 +71,9 @@ public class ConsultationController {
         // For reference check the method getForTests() method from LabRequestController class
 
         // replace this line of code with your implementation
-        throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED,"Not implemented");
+        /*throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED,"Not implemented");*/
 
-
-
+        return testRequestQueryService.findByDoctor(userLoggedInService.getLoggedInUser());
 
     }
 
@@ -98,7 +92,9 @@ public class ConsultationController {
         // For reference check the method assignForLabTest() method from LabRequestController class
         try {
             // replace this line of code with your implementation
-            throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED,"Not implemented");
+
+            return testRequestUpdateService.assignForConsultation(id,userLoggedInService.getLoggedInUser());
+           /* throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED,"Not implemented");*/
 
         }catch (AppException e) {
             throw asBadRequest(e.getMessage());
@@ -121,8 +117,8 @@ public class ConsultationController {
 
         try {
             // replace this line of code with your implementation
-            throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED,"Not implemented");
-
+            /*throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED,"Not implemented");*/
+            return testRequestUpdateService.updateConsultation(id,testResult,userLoggedInService.getLoggedInUser());
 
         } catch (ConstraintViolationException e) {
             throw asConstraintViolation(e);
